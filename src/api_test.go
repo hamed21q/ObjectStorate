@@ -30,12 +30,12 @@ func CreateRandomFile(t *testing.T) string {
 
 	w.Close()
 
-	req := httptest.NewRequest("POST", "/upload", &b)
+	req := httptest.NewRequest("POST", "/Upload", &b)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 
 	recorder := httptest.NewRecorder()
 
-	api.upload(recorder, req)
+	api.Upload(recorder, req)
 
 	res := recorder.Result()
 
@@ -59,14 +59,14 @@ func TestUploadHandler(t *testing.T) {
 
 func TestDownloadHandler(t *testing.T) {
 	fileId := CreateRandomFile(t)
-	req := httptest.NewRequest("GET", fmt.Sprintf("/download/%v", fileId), nil)
+	req := httptest.NewRequest("GET", fmt.Sprintf("/Download/%v", fileId), nil)
 	recorder := httptest.NewRecorder()
 	router := mux.NewRouter()
-	router.HandleFunc("/download/{id}", api.download)
+	router.HandleFunc("/Download/{id}", api.Download)
 
 	// Serve the request using the router
 	router.ServeHTTP(recorder, req)
-	api.download(recorder, req)
+	api.Download(recorder, req)
 
 	res := recorder.Result()
 
@@ -79,13 +79,13 @@ func TestDownloadHandler(t *testing.T) {
 }
 
 func TestDownloadHandlerFileNotFound(t *testing.T) {
-	req := httptest.NewRequest("GET", fmt.Sprintf("/download/%v", "some_not_exists_id"), nil)
+	req := httptest.NewRequest("GET", fmt.Sprintf("/Download/%v", "some_not_exists_id"), nil)
 	recorder := httptest.NewRecorder()
 	router := mux.NewRouter()
-	router.HandleFunc("/download/{id}", api.download)
+	router.HandleFunc("/Download/{id}", api.Download)
 
 	router.ServeHTTP(recorder, req)
-	api.download(recorder, req)
+	api.Download(recorder, req)
 
 	res := recorder.Result()
 

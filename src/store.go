@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -45,4 +46,16 @@ func (store *Store) FileInfo(fileId string) (os.FileInfo, string, error) {
 		return nil, "", fileNotFound
 	}
 	return stat, filePath, nil
+}
+
+func (store *Store) DownloadFromUrl(client *http.Client, url string) (io.ReadCloser, error) {
+	resp, err := client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("bad status: %s", resp.Status)
+	}
+	return resp.Body, nil
 }
