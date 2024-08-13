@@ -1,9 +1,17 @@
 package main
 
-import "ObjectStorage/src"
+import (
+	"ObjectStorage/src"
+	"ObjectStorage/utils"
+	"log"
+)
 
 func main() {
-	store := src.NewStore("./tmp")
+	config, err := utils.LoadConfig(".")
+	if err != nil {
+		log.Fatalf("cannot load config: %v", err)
+	}
+	store := src.NewStore(config.FileStoragePath)
 	api := src.NewApi(store)
-	api.Start(":8080")
+	api.Start(config.HTTPServerAddress)
 }
