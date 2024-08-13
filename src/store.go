@@ -32,6 +32,17 @@ func (store *Store) write(originFile io.Reader, fileName string) error {
 	return nil
 }
 
-func (store *Store) read(fileName string) {
-
+func (store *Store) FileInfo(fileId string) (os.FileInfo, string, error) {
+	fileNotFound := errors.New("file not found")
+	filePath := filepath.Join(store.directoryPath, fileId)
+	file, err := os.Open(filePath)
+	defer file.Close()
+	if err != nil {
+		return nil, "", fileNotFound
+	}
+	stat, err := file.Stat()
+	if err != nil {
+		return nil, "", fileNotFound
+	}
+	return stat, filePath, nil
 }

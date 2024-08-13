@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 )
 
@@ -33,56 +32,39 @@ func (api *Api) Start(address string) {
 }
 
 type UploadResponse struct {
-	ID     string
-	Status int
+	ID string
 }
 
 func (api *Api) upload(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseMultipartForm(10 << 30)
-	if err != nil {
-		http.Error(w, "unable to parse multipart", http.StatusInternalServerError)
-	}
-
 	file, header, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "unable to cast multipart", http.StatusInternalServerError)
 	}
+	defer file.Close()
+	defer utils.RemoveMultipartForm(r)
 	uniqueID := utils.GetUniqueID(header.Filename) + header.Filename
 	if err = api.store.write(file, uniqueID); err != nil {
 		http.Error(w, "failed to persist file", http.StatusInternalServerError)
 	}
-	defer file.Close()
-
 	w.Header().Set("Content-Type", "application/json")
-
 	w.WriteHeader(http.StatusOK)
-
 	json.NewEncoder(w).Encode(UploadResponse{
-		ID:     uniqueID,
-		Status: 200,
+		ID: uniqueID,
 	})
 }
 
 func (api *Api) download(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	fileName := vars["id"]
-
-	filePath := filepath.Join(api.store.directoryPath, fileName)
-	file, err := os.Open(filePath)
+	fileID := vars["id"]
+	fileStat, filePath, err := api.store.FileInfo(fileID)
 	if err != nil {
 		http.Error(w, "File not found.", http.StatusNotFound)
 		return
 	}
-	defer file.Close()
 
-	fileInfo, err := file.Stat()
-	if err != nil {
-		http.Error(w, "Could not retrieve file information.", http.StatusInternalServerError)
-		return
-	}
 	w.Header().Set("Content-Disposition", "attachment; filename="+filepath.Base(filePath))
 	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileStat.Size()))
 
 	http.ServeFile(w, r, filePath)
 }

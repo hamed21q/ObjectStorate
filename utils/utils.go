@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"log"
 	"mime/multipart"
+	"net/http"
 	"time"
 )
 
@@ -23,4 +24,12 @@ func GetUniqueID(fileName string) string {
 	hashInBytes := hash.Sum(nil)
 	return hex.EncodeToString(hashInBytes)
 
+}
+
+func RemoveMultipartForm(r *http.Request) {
+	if r.MultipartForm != nil {
+		if err := r.MultipartForm.RemoveAll(); err != nil {
+			log.Printf("error on removing multipart file: %v \n", err)
+		}
+	}
 }
