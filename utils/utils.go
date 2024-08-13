@@ -4,18 +4,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"log"
-	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
 )
-
-func SafeClose(file multipart.File) {
-	err := file.Close()
-	if err != nil {
-		log.Fatalf("cant close the file")
-	}
-}
 
 func GetUniqueID(fileName string) string {
 	currentTimestamp := time.Now().Format(time.RFC3339)

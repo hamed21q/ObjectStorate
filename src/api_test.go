@@ -28,7 +28,8 @@ func CreateRandomFile(t *testing.T) string {
 	_, err = file.Write(fileContent)
 	assert.Nil(t, err)
 
-	w.Close()
+	err = w.Close()
+	assert.Nil(t, err)
 
 	req := httptest.NewRequest("POST", "/Upload", &b)
 	req.Header.Set("Content-Type", w.FormDataContentType())
